@@ -1,4 +1,4 @@
-# STM32 Autonomous Mini Rover
+# Autonomous Mini Rover
 
 A small STM32-controlled mobile robot designed to detect obstacles and
 perform basic autonomous movement using sensor feedback.
@@ -30,7 +30,7 @@ hardware demonstration.*
 
 Replace placeholders with the actual components used.
 
--   STM32 development board: **\[exact board/model to be added\]**
+-   Development board: **\[exact board/model to be added\]**
 -   Motor driver: **\[model to be added\]**
 -   Motors, wheels, and chassis: **\[specifications to be added\]**
 -   Range sensor: **\[model to be added\]**

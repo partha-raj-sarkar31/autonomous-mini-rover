@@ -44,7 +44,7 @@ chassis documentation.
 ## Repository Structure
 
 ``` text
-stm32-autonomous-rover/
+autonomous-mini-rover/
 ├── firmware/       # Motor control, sensor driver, navigation state machine
 ├── hardware/       # Circuit, pin map, BOM, chassis files
 ├── tests/          # Obstacle trials, stopping-distance data, success-rate logs

@@ -1,0 +1,2 @@
+trial,firmware_commit,sensor_model,battery_v,approach_condition,initial_distance_cm,stopping_distance_cm,detected,contact,avoidance_success,false_positive,notes
+# TEMPLATE ONLY: replace this comment row with measured records; no measurements supplied

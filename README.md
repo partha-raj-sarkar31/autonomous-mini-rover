@@ -1,159 +1,111 @@
-# Autonomous Mini Rover
+# Autonomous Mini Rover 
 
-A small STM32-controlled mobile robot designed to detect obstacles and
-perform basic autonomous movement using sensor feedback.
+**Robotics Society of Varendra University (RSVU), Bangladesh**  
+**Status:** software prototype / hardware integration pending
 
-> **Project status:** In development\
-> **Performance status:** Baseline testing pending. Obstacle-avoidance
-> and safety performance have not yet been validated.
-
-## Demo
-
-**Prototype video:** *Placeholder --- add a link after recording a real
-hardware demonstration.*
-
-`[Add demo video URL here]`
+A small differential-drive rover software foundation targeting Arduino Uno R3, an L293D motor driver, DC motors, a range sensor (exact model TBD), and a proposed 3S 900 mAh, 11.1 V battery pack. This repository currently demonstrates navigation logic in software; it does not prove physical obstacle avoidance.
 
 ## Objectives
+- Separate range sensing, motor commands, and navigation decisions.
+- Implement `IDLE`, `FORWARD`, `STOP`, `TURN`, `RECHECK`, and `FAULT` states.
+- Treat invalid distance readings and timeouts as explicit conditions.
+- Provide deterministic tests and a synthetic demonstration before hardware integration.
 
--   Control a differential-drive robot using two independently driven
-    motors.
--   Measure distance with an ultrasonic sensor or another documented
-    range sensor.
--   Implement obstacle detection, stop/turn behavior, and a simple
-    navigation state machine.
--   Evaluate detection performance, stopping distance, and
-    obstacle-avoidance success.
--   Keep hardware assumptions and test conditions documented.
-
-## Hardware
-
-Replace placeholders with the actual components used.
-
--   Development board: **\[exact board/model to be added\]**
--   Motor driver: **\[model to be added\]**
--   Motors, wheels, and chassis: **\[specifications to be added\]**
--   Range sensor: **\[model to be added\]**
--   Battery, regulator, and power switch: **\[specifications to be
-    added\]**
--   Optional wheel encoders: **\[model/status to be added\]**
-
-See [`hardware/`](hardware/) for the BOM, circuit diagram, pin map, and
-chassis documentation.
-
+## Features
+- Portable C++ navigation state machine in `firmware/`.
+- Python reference model, unit tests, and software-only demo in `tests/`.
+- Provisional BOM, pin map, wiring and electrical checklist.
+- Staged hardware test protocol.
 ## Repository Structure
 
 ``` text
 autonomous-mini-rover/
-├── firmware/       # Motor control, sensor driver, navigation state machine
-├── hardware/       # Circuit, pin map, BOM, chassis files
-├── tests/          # Obstacle trials, stopping-distance data, success-rate logs
-├── docs/           # State machine, setup guide, test reports
 ├── README.md
-├── LICENSE
-└── .gitignore
+├── .gitignore
+├── CONTRIBUTING.md
+├── firmware/
+│   ├── rover_navigation.h
+│   └── smoke.cpp
+├── hardware/
+│   ├── BOM.md
+│   ├── pin-map.md
+│   └── wiring.md
+├── docs/
+│   ├── architecture.md
+│   └── development-plan.md
+└── tests/
+    ├── rover_model.py
+    ├── test_rover.py
+    ├── demo.py
+    ├── test-plan.md
+    └── example-results.csv
 ```
 
-## Software and Setup
+## Architecture
+`range sensor adapter -> validated distance sample -> navigation state machine -> bounded motor request -> L293D adapter`
 
-1.  Install the development toolchain appropriate for the selected STM32
-    board.
-2.  Confirm GPIO, PWM, timer/input-capture, and ADC requirements for the
-    selected hardware.
-3.  Wire the motor driver and range sensor according to their datasheets
-    and the verified board pinout.
-4.  Check all signal voltage levels before connecting sensor outputs to
-    the MCU.
-5.  Test sensor readings with the motors disconnected or disabled.
-6.  Test each motor at low PWM while the wheels are lifted.
-7.  Run the navigation state machine in a clear, controlled area.
+The C++ code is intended for Arduino IDE integration, but is kept independent of Arduino headers so the state machine can be compiled/tested separately. Add the sensor and motor driver adapters after confirming the actual range sensor, motor ratings, and wiring.
 
-**Important:** Some ultrasonic modules use a 5 V ECHO signal. Verify the
-module's electrical specification and use level shifting where required
-for a 3.3 V STM32 input.
+## Components
+| Component | Target | Verification needed |
+|---|---|---|
+| Controller | Arduino Uno R3 / ATmega328P | Board revision/clone |
+| Motor driver | L293D IC/module | Exact package/module, current and thermal limits |
+| Motors | DC gear motors, model TBD | Rated voltage, stall current, gearbox/output speed |
+| Range sensor | TBD (e.g. ultrasonic only if selected) | Model, voltage, interface, valid range, timeout behavior |
+| Battery | 3S 900 mAh, 11.1 V nominal | Chemistry, discharge rating, protection |
+| Regulator | Buck converter TBD | Input/output range and current rating |
+| Chassis, wheels, switch, fuse | TBD | Mechanical and current ratings |
 
-## Initial Navigation Logic
+## Setup
+Python 3.9+ is sufficient for software tests and demo; no third-party Python packages are required.
 
-The first version may use a simple state machine:
+```bash
+python -m unittest discover -s tests -v
+python tests/demo.py
+```
 
--   `IDLE`: motors stopped until start conditions are met.
--   `FORWARD`: move while the measured distance is above the configured
-    threshold.
--   `STOP`: stop when an obstacle is detected inside the threshold.
--   `TURN`: rotate or steer for a configured interval.
--   `RECHECK`: measure again and decide whether to continue or repeat
-    avoidance.
--   `FAULT`: stop motors when sensor readings are invalid or a fault is
-    detected.
+Portable C++ smoke compile if `g++` is available:
+```bash
+g++ -std=c++11 -Wall -Wextra -Werror -Ifirmware firmware/smoke.cpp -o /tmp/rover_smoke
+/tmp/rover_smoke
+```
 
-Document thresholds, timeouts, sensor update rate, and failure behavior
-in `docs/`. A timed turn is a starting point, not a guarantee of
-collision-free navigation.
+For Arduino IDE integration, create/open an `.ino` sketch and include the state-machine header. Sensor and motor adapters are deliberately not wired to pins until the actual sensor and motor specifications are confirmed.
 
-## Testing and Metrics
+## Usage and demo
+The demo uses synthetic distance readings. It demonstrates software state transitions, not real sensor measurements or collision avoidance. A timed turn is only a heuristic; it cannot guarantee that the path is clear.
 
-Test in a controlled environment with clearly defined obstacle positions
-and approach speeds.
+## Testing
+Python tests cover state transitions, threshold boundaries, invalid readings, turn timeout, and fault-stop behavior. C++ smoke compile checks the portable state-machine header. Physical stopping distance, detection accuracy, and avoidance success remain pending hardware validation.
 
-  -----------------------------------------------------------------------
-  Metric                  Definition              Status
-  ----------------------- ----------------------- -----------------------
-  Obstacle-detection      Correct detections      Pending testing
-  performance             against labeled test    
-                          cases                   
+## Results
+| Evidence | Status |
+|---|---|
+| Python unit tests | Run locally before presentation; report actual result |
+| C++ smoke compile | Run locally if compiler available |
+| Arduino IDE build/upload | Pending adapter integration |
+| Obstacle detection/stopping distance | Pending hardware validation |
+| Avoidance success/false-positive rate | Pending hardware validation |
 
-  Stopping distance       Distance traveled from  Pending testing
-                          the defined detection   
-                          point to rest           
-
-  Avoidance success rate  Successful avoidance    Pending testing
-                          trials / total valid    
-                          trials                  
-
-  False-positive rate     Obstacle detections     Pending testing
-                          when no obstacle is     
-                          present                 
-
-  Sensor failure behavior Whether invalid         Pending testing
-                          readings lead to a safe 
-                          stop                    
-  -----------------------------------------------------------------------
-
-For every test, record obstacle type/size, distance, approach speed,
-floor surface, battery condition, and firmware revision.
-
-## Baseline Results
-
-**Status: Pending testing.** No obstacle-detection accuracy,
-stopping-distance, or avoidance-success figures are available yet.
-
-Once trials are completed, report the number of trials, test setup,
-metric definitions, raw data location, summary statistics, and known
-limitations. Do not describe the rover as safe for public-road or
-human-critical use.
-
-## Safety
-
--   Test at low speed in a clear, controlled area.
--   Keep hands and loose objects away from wheels and gears.
--   Use a hardware power switch that can quickly cut motor power.
--   Do not rely on a low-cost ultrasonic sensor as the sole safety
-    system around people or vehicles.
--   Verify battery protection, polarity, and motor-driver current
-    limits.
+## Limitations
+- Range sensor type and motor ratings are not yet confirmed.
+- A single forward-facing sensor cannot reliably identify a safe turn direction.
+- Timed turns are open-loop and can fail due to battery voltage, floor friction, motor variation, or obstacles.
+- No measured detection accuracy, stopping distance, or collision-avoidance guarantee is claimed.
 
 ## Roadmap
+1. Confirm sensor model and motor stall current.
+2. Verify battery/regulator and L293D compatibility.
+3. Integrate sensor adapter with timeout and invalid-reading handling.
+4. Test motor directions with wheels raised.
+5. Measure stopping distance at low speed.
+6. Test obstacles with a soft barrier and safety spotter.
+7. Publish raw trial data and limitations.
 
--   [ ] Confirm board and component models
--   [ ] Add circuit, pin map, and BOM
--   [ ] Validate range-sensor readings
--   [ ] Validate low-speed motor control
--   [ ] Implement navigation state machine
--   [ ] Define repeatable obstacle test cases
--   [ ] Record baseline results
--   [ ] Add real prototype demo video
+## Safety
+Test at low speed in a clear area with a physical power switch and raised wheels for initial motor tests. Keep hands clear of drive wheels. Disconnect battery before wiring. Never feed raw 3S voltage into the Uno 5 V pin. Confirm the L293D current/thermal limits against motor stall current before use.
 
 ## License
+See `LICENSE`.
 
-The project license has not yet been selected. Add the chosen license
-text to `LICENSE` before describing this repository as open source.
